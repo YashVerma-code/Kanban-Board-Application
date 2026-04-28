@@ -6,7 +6,7 @@
 
 A comprehensive task management application built with modern web technologies, featuring intelligent task assignment, real-time collaboration, and conflict resolution.
 
-## 🚀 Project Overview
+## Project Overview
 
 This task management system provides teams with powerful tools to organize, assign, and track tasks efficiently. The application includes smart assignment algorithms that automatically distribute workload fairly among team members, and robust conflict handling to manage concurrent edits in real-time collaborative environments.
 
@@ -17,7 +17,7 @@ This task management system provides teams with powerful tools to organize, assi
 - **Comprehensive Task Management**: Full CRUD operations with status tracking
 - **Team Management**: Board-based organization with member management
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 - **Node.js** - Runtime environment
@@ -38,7 +38,7 @@ This task management system provides teams with powerful tools to organize, assi
 - **Socket.io Client** - Real-time updates
 
 
-## 📋 Prerequisites
+## Prerequisites
 
 Before running this application, make sure you have the following installed:
 
@@ -47,7 +47,7 @@ Before running this application, make sure you have the following installed:
 - **MongoDB** (local installation or MongoDB Atlas)
 - **Git**
 
-## 🔧 Setup and Installation
+## Setup and Installation
 
 ### 1. Clone the Repository
 
@@ -144,7 +144,7 @@ npm start
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:5000
 
-## 🎯 Features
+##  Features
 
 ### Core Features
 
@@ -239,7 +239,7 @@ npm start
 3. Assignment is based on active task count
 4. Manual override available if needed
 
-## 🧠 Smart Assign Logic
+## Smart Assign Logic
 
 The Smart Assignment feature automatically distributes tasks fairly among team members based on their current workload.
 
@@ -394,7 +394,7 @@ const handleTaskUpdate = async (taskId, updates) => {
 3. **Real-time Updates**: Instant synchronization across clients
 4. **Scalability**: Handles multiple simultaneous users efficiently -->
 
-## 🌐 Deployment
+## Deployment
 
 ### Live Application
 🔗 **[Task Management System - Live Demo](https://realtime-collaborative-kanban-board.vercel.app/)**
@@ -403,7 +403,7 @@ const handleTaskUpdate = async (taskId, updates) => {
 📹 **[Watch Demo Video](https://drive.google.com/drive/folders/1ohMk9oN_YXHf9EF43r7z3_LEu-1AJeo4?usp=sharing)**
 
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-feature`
@@ -411,17 +411,17 @@ const handleTaskUpdate = async (taskId, updates) => {
 4. Push to branch: `git push origin feature/your-feature`
 5. Submit a pull request
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🐛 Known Issues
+## Known Issues
 
 - Socket.io connection may timeout on slow networks
 - Large file uploads not yet supported
 - Mobile notifications require additional setup
 
-## 🔮 Future Enhancements
+## Future Enhancements
 
 - [ ] File attachment support
 - [ ] Advanced filtering and search
