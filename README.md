@@ -199,7 +199,7 @@ npm start
 - Touch-friendly interactions
 - Cross-browser compatibility
 
-## 📖 Usage Guide
+## Usage Guide
 
 ### Getting Started
 
