@@ -91,7 +91,13 @@ export const signup = async (req, res) => {
 
 export const logout = (req, res) => {
   try {
-    res.cookie("jwt", "", { maxAge: 0 });
+    res.cookie("jwt", "", {
+      maxAge: 0,
+      httpOnly: true,
+      secure:true,
+      sameSite: "None",   // match whatever generateToken uses
+      path:"/"
+    });
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (error) {
     console.log("Error in logout controller", error.message);
