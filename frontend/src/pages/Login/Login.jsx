@@ -33,7 +33,7 @@ export default function Login() {
   };
 
   const handleSubmit = async (event) => {
-    if(event)event.preventDefault();
+    event.preventDefault();
     const validate = validateFormValues();
     if (validate === true) {
       login(formData);
@@ -109,7 +109,6 @@ export default function Login() {
 
             {/* Submit Button */}
             <button
-              onClick={handleSubmit}
               disabled={isLoggingIn}
               className="submit-button"
               type="submit"
