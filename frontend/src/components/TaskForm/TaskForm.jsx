@@ -25,6 +25,7 @@ const TaskForm = ({
     status: editingTask?.status || "todo",
     boardId: selectedBoard._id,
     assignedTo: editingTask?.assignedTo?._id || assignedUser?._id || null,
+    version: editingTask?.version ?? 1,
   });
 
   // Sync assignedUser from store with formData when it changes

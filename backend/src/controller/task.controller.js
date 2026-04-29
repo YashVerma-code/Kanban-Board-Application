@@ -52,8 +52,8 @@ export const createTask = async (req, res) => {
         `${normalizedTitle.toUpperCase()} task is created !`
       );
 
-    io.to(boardId.toString()).emit("task:create", newTask);
-    io.emit("recentActions",newTask);
+      io.to(boardId.toString()).emit("task:create", newTask);
+      io.emit("recentActions", newTask);
       return res.status(200).json(newTask);
     } else {
       return res.status(400).json({ message: "Invalid task details " });
@@ -68,25 +68,59 @@ export const createTask = async (req, res) => {
 export const updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    const { version, ...updates } = req.body;
+    const userId = req.user.id;
 
-    const updatedTask = await Task.findByIdAndUpdate(id, updates, {
-      new: true,
-    });
+    const task = await Task.findById(id);
 
-    if (!updatedTask) {
-      return res.status(404).json({ message: "Task not found" });
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found",
+      });
     }
-    await logAction(
-      req.user.id,
-      updatedTask._id,
-      updates.boardId,
-      "updated",
-      `${updatedTask.title.toUpperCase()} task is updated !`
-    );
-     io.to(updatedTask.boardId.toString()).emit("task:update", updatedTask);
-     io.emit("recentActions",updatedTask);
-    return res.status(200).json(updatedTask);
+
+    // auto clear expired lock
+    if (
+      task.lockExpiresAt &&
+      task.lockExpiresAt < new Date()
+    ) {
+      task.lockedBy = null;
+      task.lockExpiresAt = null;
+    }
+
+    // lock ownership check
+    if (
+      task.lockedBy &&
+      task.lockedBy.toString() !== userId.toString()
+    ) {
+      return res.status(409).json({
+        message: "Another user is editing this task",
+      });
+    }
+
+    // version conflict check
+    if (task.version !== version) {
+      console.log("task.version: ",task.version," Version: ",version);
+      return res.status(409).json({
+        message: "Task is already updated by other",
+        latestTask: task,
+      });
+    }
+
+    Object.assign(task, updates);
+
+    task.version += 1;
+    task.lastModified = new Date();
+
+    // unlock after save
+    task.lockedBy = null;
+    task.lockExpiresAt = null;
+
+    await task.save();
+
+    io.to(task.boardId.toString()).emit("task:update", task);
+
+    return res.status(200).json(task);
   } catch (error) {
     return res
       .status(500)
@@ -103,7 +137,7 @@ export const updateTaskStatus = async (req, res) => {
       id,
       { ...updates, lastModified: Date.now() }, // make sure to update lastModified too
       { new: true }
-    ).populate("assignedTo","fullName");
+    ).populate("assignedTo", "fullName");
 
     if (!updatedTask) {
       return res.status(404).json({ message: "Task not found" });
@@ -114,8 +148,7 @@ export const updateTaskStatus = async (req, res) => {
         updatedTask._id,
         updates.boardId,
         "moved",
-        `${updatedTask.title?.trim().toUpperCase()} task is moved to ${
-          updatedTask.status
+        `${updatedTask.title?.trim().toUpperCase()} task is moved to ${updatedTask.status
         }!`
       );
     } else if (updates.assignedTo) {
@@ -124,13 +157,12 @@ export const updateTaskStatus = async (req, res) => {
         updatedTask._id,
         updates.boardId,
         "assigned",
-        `${updatedTask.title?.trim().toUpperCase()} task is reassigned to ${
-          updatedTask.assignedTo.fullName
+        `${updatedTask.title?.trim().toUpperCase()} task is reassigned to ${updatedTask.assignedTo.fullName
         } !`
       );
     }
-    io.to(updatedTask.boardId.toString()).emit("task:statusupdate", {updatedTask});
-    io.emit("recentActions",updatedTask);
+    io.to(updatedTask.boardId.toString()).emit("task:statusupdate", { updatedTask });
+    io.emit("recentActions", updatedTask);
     return res.status(200).json(updatedTask);
   } catch (error) {
     return res
@@ -165,8 +197,8 @@ export const deleteTask = async (req, res) => {
       `${task.title.toUpperCase()} task is deleted !`
     );
 
-     io.to(task.boardId.toString()).emit("task:delete", { _id: id });
-     io.emit("recentActions",id);
+    io.to(task.boardId.toString()).emit("task:delete", { _id: id });
+    io.emit("recentActions", id);
 
     return res.status(200).json({
       message: "Task deleted successfully",
@@ -242,4 +274,85 @@ export const getSmartAssignedUser = async (req, res) => {
     console.error("Smart assign failed:", error);
     res.status(500).json({ message: error.message || "Internal Server Error" });
   }
+};
+
+export const lockTask = async (req,res)=>{
+ try{
+   const { id } = req.params;
+   const userId = req.user.id;
+
+   const task = await Task.findById(id);
+
+   if(!task) return res.status(404).json({success:false,message:"Task not found"});
+
+   // clear expired lock
+   if (
+     task.lockExpiresAt &&
+     task.lockExpiresAt < new Date()
+   ) {
+     task.lockedBy = null;
+     task.lockExpiresAt = null;
+     console.log("Lock got expired!");
+   }
+
+   // already locked
+   if (
+     task.lockedBy &&
+     task.lockedBy.toString() !== userId.toString()
+    ) {
+    console.log("Condition: ",task.lockedBy," 2. : ",task.lockedBy.toString()," 3. ",userId.toString());
+    console.log("Already Locked!");
+     return res.status(409).json({
+       success:false,
+       message:"This task is currently being edited by another user."
+     });
+   }else{
+    console.log("Not Locked!");
+   }
+
+   task.lockedBy = userId;
+   task.lockExpiresAt = new Date(Date.now()+300000);
+
+   await task.save();
+
+   io.to(task.boardId.toString()).emit("task:locked", {
+      taskId:id,
+      userId
+   });
+
+   res.json(task);
+
+ }catch(error){
+   res.status(500).json({success:true,message:error.message});
+ }
+};
+
+export const unlockTask = async (req,res)=>{
+ try{
+   const { id } = req.params;
+   const userId = req.user.id;
+
+   const task = await Task.findOneAndUpdate(
+     {
+       _id:id,
+       lockedBy:userId
+     },
+     {
+       lockedBy:null,
+       lockExpiresAt:null
+     },
+     { new:true }
+   );
+
+   if(task){
+     io.to(task.boardId.toString()).emit("task:unlocked", {
+       taskId:id
+     });
+   }
+
+   res.json({message:"Unlocked"});
+
+ }catch(error){
+   res.status(500).json({message:error.message});
+ }
 };

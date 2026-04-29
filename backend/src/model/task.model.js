@@ -36,6 +36,19 @@ const taskSchema = new Schema(
       type: Date,
       default: Date.now,
     },
+    version: {
+      type: Number,
+      default: 1,
+    },
+    lockedBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    lockExpiresAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
@@ -52,7 +65,7 @@ taskSchema.pre("validate", async function (next) {
     return next(new Error("Task title cannot match column names"));
   }
   const existingTask = await Task.findOne({
-    boardId: this.boardId, 
+    boardId: this.boardId,
     title: this.title,
     _id: { $ne: this._id }
   });
@@ -64,6 +77,15 @@ taskSchema.pre("validate", async function (next) {
   next();
 });
 
-const Task =mongoose.models.Task || mongoose.model("Task", taskSchema);
+taskSchema.index(
+  { boardId: 1, title: 1 },
+  { unique: true }
+);
+
+taskSchema.index(
+  { lockExpiresAt: 1 }
+);
+
+const Task = mongoose.models.Task || mongoose.model("Task", taskSchema);
 
 export default Task;

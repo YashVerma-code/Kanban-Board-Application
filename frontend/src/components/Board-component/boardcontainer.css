@@ -347,6 +347,7 @@
   font-size: 1rem;
   color: #45474a;
   font-weight: 700;
+  white-space: pre-wrap;
 }
 
 .task-priority {

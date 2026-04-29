@@ -13,6 +13,7 @@ import { useBoardStore } from "../../stores/useBoardStore";
 import { useTaskStore } from "../../stores/useTaskStore";
 import { useAuthStore } from "../../stores/useAuthStore";
 import "./boardcontainer.css";
+import { toast } from "sonner";
 
 export default function BoardContainer() {
   const [showAddTask, setShowAddTask] = useState(false);
@@ -24,17 +25,8 @@ export default function BoardContainer() {
   const [selectedAssignee, setSelectedAssignee] = useState("");
 
   const {
-    setTasks,
-    activeTasks,
-    todoTasks,
-    completedTasks,
-    draggingTask,
-    setDraggingTask,
-    changeStatus,
-    updateTask,
-    isUpdatingTask,
-    removeTask,
-  } = useTaskStore();
+    setTasks, activeTasks, todoTasks, completedTasks, draggingTask, setDraggingTask, changeStatus, updateTask,
+    isUpdatingTask, removeTask, unlockTask, lockTask } = useTaskStore();
   const { availableBoardMembers, fetchboardMembers, selectedBoard } =
     useBoardStore();
 
@@ -59,14 +51,11 @@ export default function BoardContainer() {
     event.preventDefault();
     if (!draggingTask) return;
     if (draggingTask.status === key) return;
-    // console.log(
-    //   "Key : ",
-    //   key,
-    //   " BoardId : ",
-    //   selectedBoard._id,
-    //   "DraggingTaskID : ",
-    //   draggingTask._id
-    // );
+    const locked = await lockTask(draggingTask._id);   // acquire lock first
+    if (!locked) {
+      toast.warning("Task is upadating by user!");
+      return;
+    }
     await changeStatus(
       { status: key, boardId: selectedBoard._id },
       draggingTask._id
@@ -74,11 +63,13 @@ export default function BoardContainer() {
     setTasks();
   };
 
-  const handleDragOver = (event) => {
+  const handleDragOver = async (event) => {
     event.preventDefault();
   };
 
-  const handleEditTask = (task) => {
+  const handleEditTask = async (task) => {
+    const locked = await lockTask(task._id);   // acquire lock first
+    if (!locked) return;
     setEditingTask(task);
     setShowEditTask(true);
     setTaskMenuOpen(null);
@@ -475,7 +466,7 @@ export default function BoardContainer() {
                             </div>
                             <div className="task-assignedTo">
                               <i>Assigned to : </i>
-                              {task.assignedTo.fullName}
+                              {task?.assignedTo?.fullName || "Unassigned"}
                             </div>
                             <div
                               className="task-priority"
@@ -540,7 +531,10 @@ export default function BoardContainer() {
       {/* Edit Task Modal */}
       {showEditTask && (
         <TaskForm
-          setShowTaskAdd={setShowEditTask}
+          setShowTaskAdd={async (val) => {
+            await unlockTask(editingTask._id);   // release lock on close
+            setShowEditTask(val);
+          }}
           editingTask={editingTask}
           isEditing={true}
         />

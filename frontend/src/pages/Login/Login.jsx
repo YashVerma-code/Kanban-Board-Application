@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, LogIn } from "lucide-react";
 import { useAuthStore } from "../../stores/useAuthStore";
-import {toast} from "sonner";
+import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import "./login.css";
 
@@ -60,77 +60,79 @@ export default function Login() {
         <div className="form-header">
           <h1>Welcome Back</h1>
           <p>Sign in to continue Real Time
-Collaborative To-Do Board</p>
+            Collaborative To-Do Board</p>
         </div>
-
-        <div className="form-box">
-          {/* Email */}
-          <div className="form-group">
-            <label>Email Address</label>
-            <div className="input-wrapper">
-              <Mail className={`icon ${focusedField === "email" ? "active" : ""}`} />
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                autoComplete="off"
-                onChange={handleInputChange}
-                onFocus={() => setFocusedField("email")}
-                onBlur={() => setFocusedField(null)}
-                placeholder="Enter your email"
-              />
+        <form onSubmit={handleSubmit} className="form-div">
+          <div className="form-box">
+            {/* Email */}
+            <div className="form-group">
+              <label>Email Address</label>
+              <div className="input-wrapper">
+                <Mail className={`icon ${focusedField === "email" ? "active" : ""}`} />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  autoComplete="off"
+                  onChange={handleInputChange}
+                  onFocus={() => setFocusedField("email")}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="Enter your email"
+                />
+              </div>
             </div>
+
+            {/* Password */}
+            <div className="form-group">
+              <label>Password</label>
+              <div className="input-wrapper">
+                <Lock className={`icon ${focusedField === "password" ? "active" : ""}`} />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  onFocus={() => setFocusedField("password")}
+                  onBlur={() => setFocusedField(null)}
+                  placeholder="Enter your password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="toggle-visibility"
+                >
+                  {showPassword ? <EyeOff /> : <Eye />}
+                </button>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              onClick={handleSubmit}
+              disabled={isLoggingIn}
+              className="submit-button"
+            >
+              {isLoggingIn ? (
+                <div className="loading">
+                  <div className="spinner" />
+                  <span>Signing In...</span>
+                </div>
+              ) : (
+                <div className="login-content">
+                  <LogIn />
+                  <span>Sign In</span>
+                </div>
+              )}
+            </button>
+
+            {/* Footer */}
+            <p className="footer-text">
+              Don't have an account?{" "}
+              <Link to="/signup" className="link">Sign Up</Link>
+            </p>
           </div>
 
-          {/* Password */}
-          <div className="form-group">
-            <label>Password</label>
-            <div className="input-wrapper">
-              <Lock className={`icon ${focusedField === "password" ? "active" : ""}`} />
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                onFocus={() => setFocusedField("password")}
-                onBlur={() => setFocusedField(null)}
-                placeholder="Enter your password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="toggle-visibility"
-              >
-                {showPassword ? <EyeOff /> : <Eye />}
-              </button>
-            </div>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            onClick={handleSubmit}
-            disabled={isLoggingIn}
-            className="submit-button"
-          >
-            {isLoggingIn ? (
-              <div className="loading">
-                <div className="spinner" />
-                <span>Signing In...</span>
-              </div>
-            ) : (
-              <div className="login-content">
-                <LogIn />
-                <span>Sign In</span>
-              </div>
-            )}
-          </button>
-
-          {/* Footer */}
-          <p className="footer-text">
-            Don't have an account?{" "}
-            <Link to="/signup" className="link">Sign Up</Link>
-          </p>
-        </div>
+        </form>
       </div>
     </div>
   );
